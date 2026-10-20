@@ -18,6 +18,7 @@ python src/data.py                    # training table from the gpvisc lp sheet
 python src/redox_data.py              # measured controlled-fO2 series (Chevrel 2013/2014)
 python src/lunar_soils.py             # application set (66 returned soils)
 python src/reproduce_stapperfend.py   # step 2: validate pipeline against published numbers
+python src/validate_sw2016.py         # SW2016 implementation vs paper + Stapperfend
 python src/run_experiments.py         # step 3: grouped CV, full fit, simulant scorecard
 python src/redox_test.py              # step 4: redox stress test
 python src/earth_vs_moon.py           # deliverables 2 and 3
@@ -34,6 +35,7 @@ python src/figures.py                 # figures
 | `src/redox_data.py` | Controlled-fO₂ viscosity and Tg series with titrated Fe²⁺/Feₜₒₜ |
 | `src/lunar_soils.py` | Apollo / Luna / Chang'e-5 soil chemistry |
 | `src/baselines.py` | GRD 2008 (own implementation), pretrained gpvisc 0.3.5 |
+| `src/sw2016.py` | Sehlke & Whittington 2016 + corrigendum, both iron conventions; `src/validate_sw2016.py` checks it |
 | `src/models.py` | Ridge (NBO/T features), gradient boosting, VFT-output MLP, deep ensemble |
 | `src/zoo.py` | One prediction interface over all models; iso-viscosity temperature solver |
 
@@ -46,5 +48,5 @@ python src/figures.py                 # figures
 | Held-out lunar test | Stapperfend et al. 2025, Chem. Geol. 696:123082 | open access (depositonce.tu-berlin.de) |
 | Redox test | Chevrel 2013 PhD thesis, LMU (= Chevrel et al. 2013 GCA, 2014 GCA) | open access (edoc.ub.uni-muenchen.de/15783) |
 | Application | Zenodo 5899696, Table S2 (Apollo, Luna, Chang'E-5 soils) | open |
-| Not obtained | Sehlke & Whittington 2016 GCA 191 (model coefficients) | paywalled |
+| Baseline | Sehlke & Whittington 2016 GCA 191 + corrigendum GCA 197 | library access (PDF not committed: paywalled) |
 | Not obtained | Cukierman & Uhlmann 1974 JGR 79 (lunar 15555 redox series) | paywalled |

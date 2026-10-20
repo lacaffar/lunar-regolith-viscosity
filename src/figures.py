@@ -27,7 +27,7 @@ def fig_redox():
     s = pd.read_csv(T / "redox_seriesA_slopes.csv")
     anc = pd.read_csv(T / "redox_anchor_series.csv")
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.4))
-    models = [("gpvisc 0.3.5", S1, "s"), ("Deep ensemble", S2, "o"), ("Gradient boosting", S3, "^")]
+    models = [("gpvisc 0.3.5", S1, "s"), ("Deep ensemble", S2, "o"), ("Sehlke & Whittington 2016", S3, "^")]
     for ax, regime, unit, scale in [(axes[0], "HT", "Δlog η (Pa s) on the Moon", 1),
                                     (axes[1], "Tg", "ΔTg on the Moon (K)", 1)]:
         g = s[s.regime == regime]
@@ -36,14 +36,15 @@ def fig_redox():
         dfe3 = -0.58  # air (1500 °C) -> IW-1
         a = anc[anc.regime == regime].set_index("series").loc[order.index]
         ax.axhline(0, color=NEUTRAL, lw=1.5, ls="--", zorder=1)
-        ax.text(0.99, 0.98, "dashed line = GRD 2008 (redox-blind, always 0)", color=INK2,
-                fontsize=8, ha="right", va="top", transform=ax.transAxes)
+        ax.text(0.01, 0.01, "dashed line = GRD 2008 (redox-blind, always 0)", color=INK2,
+                fontsize=8, ha="left", va="bottom", transform=ax.transAxes)
         ax.errorbar(x, a.slope * dfe3, yerr=1.96 * a.se * abs(dfe3), fmt="D", ms=7, color=INK,
                     ecolor=INK, elinewidth=1.5, capsize=3, label="Measured (titrated Fe²⁺), 95% CI",
                     zorder=4)
         for k, (m, c, mk) in enumerate(models):
             v = g[g.model == m].set_index("series").loc[order.index].predicted_slope * dfe3
-            ax.plot(x + (k - 1) * 0.18, v, mk, ms=8, color=c, mec=SURF, mew=1.5, label=m, zorder=3)
+            ax.plot(x + (k - 1) * 0.18, v, mk, ms=8, color=c, mec=SURF, mew=1.5, zorder=3,
+                    label=m + (" (as run by Stapperfend)" if m.startswith("Sehlke") else ""))
         ax.set_xticks(x, [f"{n}\n{f:.0f}% FeO" for n, f in order.items()], fontsize=8.5)
         ax.set_ylabel(unit)
         ax.set_title({"HT": "Fully molten (~1400 °C): measured effect is tiny",

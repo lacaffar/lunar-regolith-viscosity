@@ -19,6 +19,7 @@ import pandas as pd
 from sklearn.model_selection import GroupKFold
 
 import baselines
+import sw2016
 import chem
 import models
 
@@ -118,6 +119,9 @@ def predictors(fitted):
         "GRD 2008": lambda wt, wfeot, T: (baselines.vft(T, *baselines.grd2008_params(wfeot).iloc[0]),
                                           np.full(len(T), np.nan)),
         "gpvisc 0.3.5": lambda wt, wfeot, T: baselines.gpvisc_predict(wt.loc[[wt.index[0]] * len(T)], T),
+        "Sehlke & Whittington 2016": lambda wt, wfeot, T: (
+            sw2016.log_eta(sw2016.params(wt, convention="spreadsheet").iloc[0], T),
+            np.full(len(T), np.nan)),
     }
     names = {"ridge": "Ridge (NBO/T)", "gbm": "Gradient boosting", "vft_mlp": "VFT-MLP",
              "ensemble": "Deep ensemble"}

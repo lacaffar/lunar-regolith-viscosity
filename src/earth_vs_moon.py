@@ -111,7 +111,8 @@ def table(fitted):
         r_e1100 = float(r_e1100[0])
         curves = {name: (np.asarray(zm[name](ws_e, zoo.T_GRID)[0], float),
                          np.asarray(zm[name](ws_m, zoo.T_GRID)[0], float))
-                  for name in ["gpvisc 0.3.5", "Gradient boosting", "Ridge (NBO/T)", "GRD 2008"]}
+                  for name in ["gpvisc 0.3.5", "Sehlke & Whittington 2016", "Gradient boosting",
+                               "Ridge (NBO/T)", "GRD 2008"]}
         A_, B_, C_ = (np.mean([p[i][0] for p in ens.vft_params(ws_e)]) for i in range(3))
         for lvl, tgt in LEVELS.items():
             Te, Tm = member_T(ens, ws_e, tgt), member_T(ens, ws_m, tgt)
@@ -137,7 +138,8 @@ def table(fitted):
                        dlogeta_fixedT_anchored=-dT_anc * B_ / (Te.mean() - C_) ** 2,
                        dT_ensemble=d.mean(), dT_ens_sd=d.std(),
                        dT_ens_lo=d.mean() - 1.96 * d.std(), dT_ens_hi=d.mean() + 1.96 * d.std())
-            for name in ["gpvisc 0.3.5", "Gradient boosting", "Ridge (NBO/T)", "GRD 2008"]:
+            for name in ["gpvisc 0.3.5", "Sehlke & Whittington 2016", "Gradient boosting",
+                         "Ridge (NBO/T)", "GRD 2008"]:
                 te, tm = (zoo.T_from_curve(curves[name][0], tgt), zoo.T_from_curve(curves[name][1], tgt))
                 row[f"dT_{name}"] = tm - te
                 row[f"T_earth_{name}"] = te
@@ -163,7 +165,8 @@ def table(fitted):
         frac_conflict=("model_vs_anchor_conflict", "mean"), dT_mean=("dT_ensemble", "mean"),
         dT_min=("dT_ensemble", "min"), dT_max=("dT_ensemble", "max"),
         ci_halfwidth=("dT_ens_sd", lambda x: 1.96 * x.mean()), frac_resolved=("resolved", "mean"),
-        gpvisc_dT=("dT_gpvisc 0.3.5", "mean"), gbm_dT=("dT_Gradient boosting", "mean"),
+        gpvisc_dT=("dT_gpvisc 0.3.5", "mean"), sw_dT=("dT_Sehlke & Whittington 2016", "mean"),
+        gbm_dT=("dT_Gradient boosting", "mean"),
         T_earth=("T_earth", "mean"), T_earth_sd=("T_earth_sd", "mean")).reset_index()
     summ.to_csv(RES / "earth_vs_moon_summary.csv", index=False)
     pd.set_option("display.width", 250)
@@ -222,6 +225,7 @@ def deliverable_table():
             r[f"{k}_dT_ensemble_K"] = round(x.dT_ensemble, 1)
             r[f"{k}_dT_ensemble_95ci_K"] = f"[{x.dT_ens_lo:.0f}, {x.dT_ens_hi:.0f}]"
             r[f"{k}_dT_gpvisc_K"] = round(x["dT_gpvisc 0.3.5"], 1)
+            r[f"{k}_dT_SW2016_K"] = round(x["dT_Sehlke & Whittington 2016"], 1)
             r[f"{k}_model_conflicts_with_measurement"] = bool(x.model_vs_anchor_conflict)
         rows.append(r)
     t = pd.DataFrame(rows).sort_values("FeOT_wt")

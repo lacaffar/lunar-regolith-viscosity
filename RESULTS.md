@@ -15,7 +15,9 @@ Every number below comes from `results/tables/`; figures are in `results/figures
 3. **No current model gets the redox direction right reliably.** Every ML model,
    gpvisc included, overstates the high-temperature redox effect 3–10×. Near Tg they
    disagree in sign. gpvisc has the sign wrong in 5 of 7 measured series, though it
-   was trained on those studies.
+   was trained on those studies. Sehlke & Whittington, as Stapperfend ran it, predicts
+   the *opposite* direction (reduction raises viscosity and Tg) in 12 of 13 series, an
+   artefact of how its spreadsheet handles Fe₂O₃. In the paper's own convention it is redox-blind.
 4. **The biggest unknown is not the models; it is missing data.** In every source I found,
    no basaltic melt has measured viscosity or Tg below Fe³⁺/Feₜₒₜ ≈ 0.12. Whether Tg keeps falling there
    (linear) or levels off (as Chevrel's synthetic AD melts do below 0.5) is worth a
@@ -28,6 +30,7 @@ Every number below comes from `results/tables/`; figures are in `results/figures
 |---|---|
 | "about 60% Fe³⁺ in the Stapperfend simulants" | Correct number, but it is *calculated* (Kress & Carmichael 1991 at air, 1500 °C), not measured. I reproduced it to ±0.01. An air-*sintered* test at ~1100 °C would sit near 0.9. |
 | "only 50 [gpvisc rows] have lunar-like reduced iron, all from one 1995 study" | In the `lp` sheet, 375 rows (113 compositions, 10 studies) have FeOₜ ≥ 5 wt% and Fe³⁺/Feₜₒₜ < 0.1. Ducret 1995 is the largest (236). Same conclusion, stronger form: only one composition (a Liebske 2003 andesite) has reduced iron near Tg. |
+| "Sehlke & Whittington is redox-aware (Stapperfend fed it KC1991 Fe³⁺)" | The paper treats all iron as FeO* in Be, Sconf and Cp, so it is redox-blind. Stapperfend's numbers reproduce only under a different convention (Fe₂O₃ dilutes the mol% but only FeO enters the terms), and in that convention the redox response has the wrong sign. |
 | "redox test: Chevrel 2013, Di Genova 2017, Cukierman & Uhlmann 1974" | gpvisc's Chevrel 2013 rows are air measurements with *calculated* Fe³⁺ that changes with T, not a redox series. The real controlled-fO₂ data with titrated Fe²⁺ is in Chevrel's open-access PhD thesis. Di Genova 2017A in gpvisc has only 8 high-T points. Cukierman & Uhlmann 1974 is paywalled and not yet included. |
 | 28,868 measurements | That is `dataset+sciglass_lp.csv` + `hp`. The `lp` sheet in `database.xlsx` has 15,440 rows (13,981 anhydrous) and is what I trained on, as the brief specified. |
 | (Stapperfend AmMin Table 4) | Misprinted Vogel temperatures for LRV-6 and LRV-7/8. The printed A, B, C miss the paper's own data by 0.7–1.1 log units; refits reproduce the printed Tg to within 1 K. |
@@ -48,12 +51,13 @@ Against both papers' tables for all 16 simulants (`results/tables/reproduction_c
 ## Deliverable 1: model scorecard on held-out simulants
 
 16 simulants from the two Stapperfend 2025 papers; 10 have DSC Tg data. None is within
-5.9 cation-% of any training composition. Our models never saw them; the published Sehlke &
-Whittington numbers are copied from the papers (coefficients are paywalled).
+5.9 cation-% of any training composition. Our models never saw them. Sehlke & Whittington
+is shown twice: as published by Stapperfend, and as run by my implementation (`src/sw2016.py`).
 
 | Model | Superliquidus RMSE (mean) | \|Δη(Tg)\| mean | Tg within ±0.5 | 95% coverage |
 |---|---|---|---|---|
 | Sehlke & Whittington 2016 (published) | **0.14** | 0.87 | 4/10 | n/a |
+| Sehlke & Whittington 2016 (my implementation) | 0.16 | 0.85 | 4/10 | n/a |
 | gpvisc 0.3.5 (pretrained) | 0.17 | **0.58** | **6/10** | 98% |
 | Gradient boosting | 0.33 | 0.91 | 3/10 | 59% |
 | VFT-MLP (single) | 0.33 | 0.96 | 2/10 | 44% |
@@ -112,6 +116,7 @@ Tables 2.4, 2.5, 4.4, 4.5): An-Di + 5/10/20 wt% Fe₂O₃ and four Martian basal
 | Gradient boosting | 0.53 | **33** | 4/7 |
 | Deep ensemble | 0.69 | 46 | 6/7 |
 | VFT-MLP | 0.76 | 36 | 6/7 |
+| Sehlke & Whittington 2016 (as run by Stapperfend) | 0.50, wrong sign in 6/6 | 61 | 1/7 |
 
 So the "model is flat on the redox axis" worry was half right. The ML models are not
 flat; they are *too steep* where the true effect is near zero (fully molten), and
@@ -144,17 +149,17 @@ Because no model passes the redox test, the shift is reported two ways:
 Means by terrane, ΔT = T(Moon, IW−1) − T(Earth test), in K. The Earth test is melted
 in air at 1500 °C (Stapperfend convention, Fe³⁺ ≈ 0.6):
 
-| Level | Terrane (n, FeO) | Anchored range | Ensemble (±95%) | gpvisc | Earth-test T |
-|---|---|---|---|---|---|
-| Working point 10³ Pa·s | highland (26, 5.8%) | −1 to −4 | +6 ± 24 | +16 | 1160 °C |
-| | mixed (17, 11.6%) | −2 to −8 | −21 ± 36 | −4 | 1058 °C |
-| | mare (23, 16.8%) | −3 to −11 | −54 ± 45 | +35 | 994 °C |
-| Softening 10⁶·⁶ Pa·s | highland | −1 to −5 | +13 ± 19 | +15 | 927 °C |
-| | mixed | −2 to −10 | −4 ± 24 | +4 | 830 °C |
-| | mare | −3 to −14 | −34 ± 30 | +43 | 786 °C |
-| Tg 10¹² Pa·s | highland | −1 to −7 | +16 ± 15 | +14 | 767 °C |
-| | mixed | −3 to −15 | +5 ± 22 | +12 | 677 °C |
-| | mare | −5 to −22 | −23 ± 29 | +59 | 653 °C |
+| Level | Terrane (n, FeO) | Anchored range | Ensemble (±95%) | gpvisc | Sehlke & Whittington | Earth-test T |
+|---|---|---|---|---|---|---|
+| Working point 10³ Pa·s | highland (26, 5.8%) | −1 to −4 | +6 ± 24 | +16 | +13 | 1160 °C |
+| | mixed (17, 11.6%) | −2 to −8 | −21 ± 36 | −4 | +31 | 1058 °C |
+| | mare (23, 16.8%) | −3 to −11 | −54 ± 45 | +35 | +47 | 994 °C |
+| Softening 10⁶·⁶ Pa·s | highland | −1 to −5 | +13 ± 19 | +15 | +8 | 927 °C |
+| | mixed | −2 to −10 | −4 ± 24 | +4 | +21 | 830 °C |
+| | mare | −3 to −14 | −34 ± 30 | +43 | +34 | 786 °C |
+| Tg 10¹² Pa·s | highland | −1 to −7 | +16 ± 15 | +14 | +4 | 767 °C |
+| | mixed | −3 to −15 | +5 ± 22 | +12 | +14 | 677 °C |
+| | mare | −5 to −22 | −23 ± 29 | +59 | +24 | 653 °C |
 
 If the Earth test is instead powder sintered in air at ~1100 °C (Fe³⁺ ≈ 0.9), the
 anchored Tg shift grows to −5 to −11 K (highland) and **−15 to −32 K (mare)**.
@@ -166,6 +171,9 @@ Where the models are too uncertain to say:
   it conflicts with the measured bracket for 80% of them.
 - gpvisc predicts the wrong sign (Tg *higher* on the Moon) for most soils, with
   outliers such as +152 K for 74261.
+- Sehlke & Whittington, the model Stapperfend recommend, predicts processing temperatures
+  *rise* on the Moon at every level, by up to 47 K for mare soils. That is the wrong
+  direction according to every measured series.
 
 ## Deliverable 3: experiments the field should run next
 
@@ -202,15 +210,19 @@ currently dominates the uncertainty in deliverable 2.
   B2018 and KC1991 agree to ±0.01 in Fe³⁺/Feₜₒₜ, so the choice matters little there.
 - **Metallic iron and crystals** are ignored. Mature lunar soils carry ~0.5 wt% Fe⁰, and real
   sintering is of partly crystalline powder, not glass.
-- **Sehlke & Whittington** could not be run on the soils (paywalled coefficients), and
-  **Cukierman & Uhlmann 1974** (lunar 15555 redox series) is not yet in the test set.
+- **Sehlke & Whittington implementation:** Be, Sconf and heat capacities reproduce the paper
+  (Tables 4, 7) and Stapperfend's per-sample values. Tg* needs the Richet (1987) glass Cp
+  model, which I don't have; it is replaced by a ridge surrogate fitted to the 36 published
+  Tg* values (leave-one-out RMSE 11 K). With it, Stapperfend's SW scores reproduce to a median
+  0.012 log units above the liquidus and 0.10 at Tg (`results/tables/sw2016_reproduction.csv`).
+- **Cukierman & Uhlmann 1974** (lunar 15555 redox series) is not yet in the test set.
 - The ensemble uncertainty is epistemic member spread. It is calibrated in-distribution
   only and under-covers on the out-of-distribution simulants.
 
 ## Next steps
 
-1. Get Sehlke & Whittington 2016 and Cukierman & Uhlmann 1974 (library access). Add SW as a
-   runnable baseline and 15555 as the only lunar redox series.
+1. Add Cukierman & Uhlmann 1974 (lunar 15555) as the only lunar redox series. Optionally
+   get Richet (1987) to replace the Tg* surrogate in the SW implementation.
 2. Stretch goal: beneficiation search using Table S1 (Taylor et al. 2019 QXRD modes) in the
    same Zenodo record.
 3. Optional: retrain on `dataset+sciglass_lp.csv` and drop air-assumed Fe³⁺ rows, to test

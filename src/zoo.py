@@ -42,7 +42,13 @@ def zoo(fitted, include_baselines=True):
         def gpv(ws, T):
             T = np.atleast_1d(np.asarray(T, float))
             return baselines.gpvisc_predict(ws.loc[[ws.index[0]] * len(T)], T)
+        def sw16(ws, T):
+            import sw2016
+            p = sw2016.params(ws, convention="spreadsheet").iloc[0]
+            T = np.atleast_1d(np.asarray(T, float))
+            return sw2016.log_eta(p, T), np.full(len(T), np.nan)
         out["GRD 2008"] = grd
+        out["Sehlke & Whittington 2016"] = sw16
         out["gpvisc 0.3.5"] = gpv
     for key, m in fitted.items():
         def f(ws, T, m=m):
