@@ -1,0 +1,5 @@
+data/raw/gpvisc/
+data/raw/papers/*.pdf
+data/raw/papers/*.txt
+__pycache__/
+*.log
